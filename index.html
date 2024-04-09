@@ -36,6 +36,11 @@
         width: 430px;
         margin: 0px auto 0px 0px;
       }
+      .btn-primary {
+        width: 45px;
+        font-size: large;
+        font-weight: bold;
+      }
       .edit-button {
         border-radius: 5px;
         border-color: transparent;
@@ -63,6 +68,11 @@
         box-shadow: none;
         background-color: grey;
         color: white;
+      }
+      .completed {
+        text-decoration: line-through;
+        font-style: italic;
+        color: grey;
       }
     </style>
 
@@ -104,12 +114,18 @@
 
       /******* Create: 'Add 버튼' 클릭시 *******/
       $("#add-button").click(async function () {
-        let doc = {
-          todo: $("#input-todo").val(),
-          time: Timestamp.now(),
-        };
-        await addDoc(collection(db, "todolist"), doc);
-        window.location.reload();
+        let input = $("#input-todo").val();
+        if (input == "") {
+          alert("Fill your input"); // do nothing
+        } else {
+          let doc = {
+            todo: input,
+            time: Timestamp.now(),
+            completed: "no",
+          };
+          await addDoc(collection(db, "todolist"), doc);
+          window.location.reload();
+        }
       });
 
       /******* Read: 저장된 데이터를 '시간순으로' 정렬해서 불러오기 *******/
@@ -118,27 +134,34 @@
       );
       docs.forEach((doc) => {
         let todo = doc.data()["todo"];
+        let completed = doc.data()["completed"];
 
         let temp_html = `
         <ul class="list-group" id="${doc.id}">
             <li class="list-group-item">
-              <input class="form-check-input me-1" type="checkbox" value=""/>
-              <label class="form-check-label">${todo}</label>
+              <input class="form-check-input me-1" type="checkbox" id="check" />
+              <label>${todo}</label>
             </li>
             <button class="edit-button">✄</button>
             <button class="delete-button">✕</button>
         </ul>`;
-        $("#list").append(temp_html);
-      });
 
-      // checkbox 버튼 클릭시
-      // $("#checkbox").click(async function () {});
+        let temp_html_completed = `
+        <ul class="list-group" id="${doc.id}">
+            <li class="list-group-item">
+              <input class="form-check-input me-1" type="checkbox" id="check" checked/>
+              <label class="completed">${todo}</label>
+            </li>
+            <button class="edit-button">✄</button>
+            <button class="delete-button">✕</button>
+        </ul>`;
 
-      /******* Delete: 'delete 버튼' 클릭시 *******/
-      $(document).on("click", ".delete-button", function () {
-        let docID = this.parentElement.id;
-        $(this).parent().remove();
-        deleteDoc(doc(db, "todolist", docID));
+        if (completed == "no") {
+          $("#list").append(temp_html);
+        } else if (completed == "yes") {
+          $("#list").append(temp_html_completed);
+        } else {
+        }
       });
 
       /******* Update: (1) 'edit 버튼' 클릭시 *******/
@@ -217,6 +240,31 @@
           .removeClass("cancel-button")
           .addClass("delete-button");
       });
+
+      /******* Update: (4) 'checkbox' 클릭시 *******/
+      $(document).on("click", ".form-check-input", function () {
+        let docID = this.parentElement.parentElement.id;
+        var checked = $(this).is(":checked");
+
+        if (checked) {
+          $(this).parent().children("label").addClass("completed");
+          updateDoc(doc(db, "todolist", docID), {
+            completed: "yes",
+          });
+        } else {
+          $(this).parent().children("label").removeClass("completed");
+          updateDoc(doc(db, "todolist", docID), {
+            completed: "no",
+          });
+        }
+      });
+
+      /******* Delete: 'delete 버튼' 클릭시 *******/
+      $(document).on("click", ".delete-button", function () {
+        let docID = this.parentElement.id;
+        $(this).parent().remove();
+        deleteDoc(doc(db, "todolist", docID));
+      });
     </script>
     <div class="main">
       <h1 class="title">TO-DO LIST</h1>
@@ -225,13 +273,11 @@
         <input
           type="text"
           class="form-control"
-          placeholder="write your to-do"
+          placeholder="write what to do"
           id="input-todo"
         />
 
-        <button class="btn btn-primary" type="button" id="add-button">
-          Add
-        </button>
+        <button class="btn btn-primary" type="button" id="add-button">+</button>
       </div>
       <div class="list" id="list"></div>
     </div>
