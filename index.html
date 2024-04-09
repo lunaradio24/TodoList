@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+
+    <!-- Bootstrap CSS 가져오기 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      .title {
+        width: 500px;
+        text-align: center;
+        margin: 50px auto 0px auto;
+      }
+
+      .input-group {
+        width: 500px;
+        margin: 20px auto 0px auto;
+      }
+
+      .list-group {
+        width: 500px;
+        margin: 10px auto 0px auto;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .list-group-item {
+        width: 430px;
+        margin: 0px auto 0px 0px;
+      }
+      .edit-button {
+        border-radius: 5px;
+        border-color: transparent;
+        box-shadow: none;
+        background-color: darkblue;
+        color: white;
+      }
+      .delete-button {
+        border-radius: 5px;
+        border-color: transparent;
+        box-shadow: none;
+        background-color: red;
+        color: white;
+      }
+      .confirm-button {
+        border-radius: 5px;
+        border-color: transparent;
+        box-shadow: none;
+        background-color: rgb(4, 216, 0);
+        color: white;
+      }
+      .cancel-button {
+        border-radius: 5px;
+        border-color: transparent;
+        box-shadow: none;
+        background-color: grey;
+        color: white;
+      }
+    </style>
+
+    <!-- JQuery 가져오기 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      // Firebase SDK 라이브러리 가져오기
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+      import {
+        collection,
+        addDoc,
+        getDoc,
+        getDocs,
+        updateDoc,
+        deleteDoc,
+        doc,
+        query,
+        orderBy,
+        Timestamp,
+      } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+      // Firebase 구성 정보 설정
+      const firebaseConfig = {
+        apiKey: "AIzaSyAWprZet_YauIxbEG6bMbRPCZEDzMZx3iI",
+        authDomain: "sparta-12205.firebaseapp.com",
+        projectId: "sparta-12205",
+        storageBucket: "sparta-12205.appspot.com",
+        messagingSenderId: "1030544097571",
+        appId: "1:1030544097571:web:2368d1ac1eeb2439c24c96",
+        measurementId: "G-FD4Q8M4PP1",
+      };
+
+      // Firebase 인스턴스 초기화
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      /******* Create: 'Add 버튼' 클릭시 *******/
+      $("#add-button").click(async function () {
+        let doc = {
+          todo: $("#input-todo").val(),
+          time: Timestamp.now(),
+        };
+        await addDoc(collection(db, "todolist"), doc);
+        window.location.reload();
+      });
+
+      /******* Read: 저장된 데이터를 '시간순으로' 정렬해서 불러오기 *******/
+      let docs = await getDocs(
+        query(collection(db, "todolist"), orderBy("time"))
+      );
+      docs.forEach((doc) => {
+        let todo = doc.data()["todo"];
+
+        let temp_html = `
+        <ul class="list-group" id="${doc.id}">
+            <li class="list-group-item">
+              <input class="form-check-input me-1" type="checkbox" value=""/>
+              <label class="form-check-label">${todo}</label>
+            </li>
+            <button class="edit-button">✄</button>
+            <button class="delete-button">✕</button>
+        </ul>`;
+        $("#list").append(temp_html);
+      });
+
+      // checkbox 버튼 클릭시
+      // $("#checkbox").click(async function () {});
+
+      /******* Delete: 'delete 버튼' 클릭시 *******/
+      $(document).on("click", ".delete-button", function () {
+        let docID = this.parentElement.id;
+        $(this).parent().remove();
+        deleteDoc(doc(db, "todolist", docID));
+      });
+
+      /******* Update: (1) 'edit 버튼' 클릭시 *******/
+      $(document).on("click", ".edit-button", function () {
+        let item_to_edit = $(this).parent().children("li").children("label");
+        let before_edit = item_to_edit.text();
+        item_to_edit.text("");
+        item_to_edit.append(`<input type="text" value="${before_edit}"/>`);
+        // edit-button -> confirm-button
+        $(this).text("✓").removeClass("edit-button").addClass("confirm-button");
+        // delete-button -> cancel-button
+        $(this)
+          .parent()
+          .children(".delete-button")
+          .text("↺")
+          .removeClass("delete-button")
+          .addClass("cancel-button");
+      });
+
+      /******* Update: (2) confirm 버튼 클릭시 *******/
+      $(document).on("click", ".confirm-button", async function () {
+        let docID = this.parentElement.id;
+        let findRef = doc(db, "todolist", docID);
+        let findDoc = await getDoc(findRef);
+        let before_edit = findDoc.data()["todo"];
+        let after_edit = $(this)
+          .parent()
+          .children("li")
+          .children("label")
+          .children("input")
+          .val();
+
+        // check if the input is blank
+        if (after_edit == "") {
+          // do nothing on todo-text
+          $(this).parent().children("li").children("label").text(before_edit);
+        } else {
+          // update todo-text
+          $(this).parent().children("li").children("label").text(after_edit);
+          updateDoc(doc(db, "todolist", docID), {
+            todo: after_edit,
+          });
+        }
+        // confirm-button -> edit-button
+        $(this).text("✄").removeClass("confirm-button").addClass("edit-button");
+
+        // cancel-button -> delete-button
+        $(this)
+          .parent()
+          .children(".cancel-button")
+          .text("✕")
+          .removeClass("cancel-button")
+          .addClass("delete-button");
+      });
+
+      /******* Update: (3) cancel 버튼 클릭시 *******/
+      $(document).on("click", ".cancel-button", async function () {
+        let docID = this.parentElement.id;
+        let findRef = doc(db, "todolist", docID);
+        let findDoc = await getDoc(findRef);
+        let before_edit = findDoc.data()["todo"];
+
+        // do nothing on todo-text
+        $(this).parent().children("li").children("label").text(before_edit);
+        // confirm-button -> edit-button
+        $(this)
+          .parent()
+          .children(".confirm-button")
+          .text("✄")
+          .removeClass("confirm-button")
+          .addClass("edit-button");
+
+        // cancel-button -> delete-button
+        $(this)
+          .text("✕")
+          .removeClass("cancel-button")
+          .addClass("delete-button");
+      });
+    </script>
+    <div class="main">
+      <h1 class="title">TO-DO LIST</h1>
+
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="write your to-do"
+          id="input-todo"
+        />
+
+        <button class="btn btn-primary" type="button" id="add-button">
+          Add
+        </button>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+  </body>
+</html>
