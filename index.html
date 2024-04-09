@@ -46,6 +46,7 @@
         border-color: transparent;
         box-shadow: none;
         background-color: darkblue;
+        margin-right: 5px;
         color: white;
       }
       .delete-button {
@@ -58,6 +59,7 @@
       .confirm-button {
         border-radius: 5px;
         border-color: transparent;
+        margin-right: 5px;
         box-shadow: none;
         background-color: rgb(4, 229, 0);
         color: white;
@@ -73,6 +75,25 @@
         text-decoration: line-through;
         font-style: italic;
         color: grey;
+      }
+      /* toast message */
+      #toast_message {
+        opacity: 0;
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translate(-50%, 0);
+        padding: 10px 50px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 100px;
+        color: #fff;
+        box-shadow: 3px 4px 11px 0px #00000040;
+        transition: all 0.5s;
+      }
+      /* If toast message is active */
+      #toast_message.active {
+        opacity: 100%;
+        bottom: 50px;
       }
     </style>
 
@@ -112,39 +133,70 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      // Toast Message Pop-up function
+      function toastOn(toastkey) {
+        if (toastkey) {
+          let toastMessage = document.getElementById("toast_message");
+          toastMessage.classList.add("active");
+          setTimeout(function () {
+            toastMessage.classList.remove("active");
+          }, 1000);
+        } else {
+          // do nothing
+        }
+      }
+
+      /******* When Document is Ready *******/
+      $(document).ready(function () {
+        //get the key for toast
+        let toastkey = sessionStorage.getItem("toastkey");
+        //active toastOn function depending on toastkey
+        toastOn(toastkey);
+        //clear the session storage
+        sessionStorage.clear();
+      });
+
       /******* Create: 'Add 버튼' 클릭시 *******/
       $("#add-button").click(async function () {
         let input = $("#input-todo").val();
         if (input == "") {
           alert("Fill your input"); // do nothing
         } else {
+          //data storage에 저장할 document 생성
           let doc = {
             todo: input,
             time: Timestamp.now(),
             completed: "no",
           };
+          //"todolist"라는 collection에 데이터 저장
           await addDoc(collection(db, "todolist"), doc);
-          window.location.reload();
+          //toast를 위해 session storage에 toastkey 저장
+          sessionStorage.setItem("toastkey", true);
         }
+        window.location.reload();
       });
 
       /******* Create: 'Enter-key' 클릭시 *******/
       var keyinput = document.getElementById("input-todo");
       keyinput.addEventListener("keyup", function (event) {
+        //Enter 클릭시
         if (event.keyCode === 13) {
           event.preventDefault();
+          //add-button 클릭한 것과 같은 효과
           document.getElementById("add-button").click();
         }
       });
 
       /******* Read: 저장된 데이터를 '시간순으로' 정렬해서 불러오기 *******/
       let docs = await getDocs(
+        //시간순 정렬해서 query로 불러오기
         query(collection(db, "todolist"), orderBy("time"))
       );
       docs.forEach((doc) => {
         let todo = doc.data()["todo"];
         let completed = doc.data()["completed"];
 
+        //completed가 "no"일 때 추가할 template
         let temp_html = `
         <ul class="list-group" id="${doc.id}">
             <li class="list-group-item">
@@ -155,6 +207,7 @@
             <button class="delete-button">✕</button>
         </ul>`;
 
+        //completed가 "yes"일 때 추가할 template
         let temp_html_completed = `
         <ul class="list-group" id="${doc.id}">
             <li class="list-group-item">
@@ -290,5 +343,6 @@
       </div>
       <div class="list" id="list"></div>
     </div>
+    <div id="toast_message">Successfully Added !</div>
   </body>
 </html>
