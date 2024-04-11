@@ -134,9 +134,10 @@
       const db = getFirestore(app);
 
       // Toast Message Pop-up function
+      let toastMessage = document.getElementById("toast_message");
+
       function toastOn(toastkey) {
-        if (toastkey) {
-          let toastMessage = document.getElementById("toast_message");
+        if (toastkey == "on") {
           toastMessage.classList.add("active");
           setTimeout(function () {
             toastMessage.classList.remove("active");
@@ -152,15 +153,15 @@
         let toastkey = sessionStorage.getItem("toastkey");
         //active toastOn function depending on toastkey
         toastOn(toastkey);
-        //clear the session storage
-        sessionStorage.clear();
+        //reset the toastkey in the session storage as false
+        sessionStorage.setItem("toastkey", "off");
       });
 
       /******* Create: 'Add 버튼' 클릭시 *******/
       $("#add-button").click(async function () {
         let input = $("#input-todo").val();
         if (input == "") {
-          alert("Fill your input"); // do nothing
+          alert("Please enter what to do"); // do nothing
         } else {
           //data storage에 저장할 document 생성
           let doc = {
@@ -171,12 +172,12 @@
           //"todolist"라는 collection에 데이터 저장
           await addDoc(collection(db, "todolist"), doc);
           //toast를 위해 session storage에 toastkey 저장
-          sessionStorage.setItem("toastkey", true);
+          sessionStorage.setItem("toastkey", "on");
+          window.location.reload();
         }
-        window.location.reload();
       });
 
-      /******* Create: 'Enter-key' 클릭시 *******/
+      /******* Create: 'Enter-key' 누를 시 *******/
       var keyinput = document.getElementById("input-todo");
       keyinput.addEventListener("keyup", function (event) {
         //Enter 클릭시
@@ -195,13 +196,14 @@
       docs.forEach((doc) => {
         let todo = doc.data()["todo"];
         let completed = doc.data()["completed"];
+        let time = doc.data()["time"];
 
         //completed가 "no"일 때 추가할 template
         let temp_html = `
         <ul class="list-group" id="${doc.id}">
             <li class="list-group-item">
-              <input class="form-check-input me-1" type="checkbox" id="check" />
-              <label>${todo}</label>
+              <input class="form-check-input me-1" type="checkbox" id="${time}" />
+              <label for="${time}">${todo}</label>
             </li>
             <button class="edit-button">✄</button>
             <button class="delete-button">✕</button>
@@ -211,8 +213,8 @@
         let temp_html_completed = `
         <ul class="list-group" id="${doc.id}">
             <li class="list-group-item">
-              <input class="form-check-input me-1" type="checkbox" id="check" checked/>
-              <label class="completed">${todo}</label>
+              <input class="form-check-input me-1" type="checkbox" id="${time}" checked/>
+              <label for="${time}" class="completed">${todo}</label>
             </li>
             <button class="edit-button">✄</button>
             <button class="delete-button">✕</button>
@@ -338,7 +340,6 @@
           placeholder="write what to do"
           id="input-todo"
         />
-
         <button class="btn btn-primary" type="button" id="add-button">+</button>
       </div>
       <div class="list" id="list"></div>
