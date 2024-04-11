@@ -14,10 +14,15 @@
     />
 
     <style>
+      .main {
+        margin-top: 50px;
+        margin-bottom: 50px;
+      }
+
       .title {
         width: 500px;
         text-align: center;
-        margin: 50px auto 0px auto;
+        margin: 0px auto 0px auto;
       }
 
       .input-group {
@@ -173,13 +178,14 @@
           await addDoc(collection(db, "todolist"), doc);
           //toast를 위해 session storage에 toastkey 저장
           sessionStorage.setItem("toastkey", "on");
+          //입력창 초기화 및 추가된 할일 목록 업데이트를 위한 페이지 새로고침
           window.location.reload();
         }
       });
 
       /******* Create: 'Enter-key' 누를 시 *******/
       var keyinput = document.getElementById("input-todo");
-      keyinput.addEventListener("keyup", function (event) {
+      keyinput.addEventListener("keypress", function (event) {
         //Enter 클릭시
         if (event.keyCode === 13) {
           event.preventDefault();
