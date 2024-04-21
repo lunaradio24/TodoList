@@ -88,8 +88,8 @@ function readTodo() {
 
     let template = document.getElementById("template-id");
     let clone = document.importNode(template.content, true);
-    let input = clone.querySelector("li > input");
-    let label = clone.querySelector("li > label");
+    let input = clone.querySelector("ul > li > input");
+    let label = clone.querySelector("ul > li > label");
 
     clone.id = doc.id;
     input.id = time;
@@ -128,7 +128,7 @@ function editTodo(element) {
     .addClass("cancel-button");
 }
 
-button1.addEventListener("click", (event) => {
+button1?.addEventListener("click", (event) => {
   if (button1.className == "edit-button") {
     editTodo(event.target);
   } else if (button1.className == "confirm-button") {
@@ -137,7 +137,7 @@ button1.addEventListener("click", (event) => {
   }
 });
 
-button2.addEventListener("click", (event) => {
+button2?.addEventListener("click", (event) => {
   if (button2.className == "delete-button") {
     deleteTodo(event.target);
   } else if (button2.className == "cancel-button") {
