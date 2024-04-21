@@ -29,34 +29,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Toast Message Pop-up function
-let toastMessage = document.getElementById("toast_message");
-function toastOn(toastkey) {
-  if (toastkey == "on") {
-    toastMessage.classList.add("active");
-    setTimeout(function () {
-      toastMessage.classList.remove("active");
-    }, 1000);
-  } else {
-  }
-}
-
-/******* When Document is Ready *******/
-let toastkey = sessionStorage.getItem("toastkey");
-function readyDoc() {
-  if (document.readyState !== "loading") {
-    //read saved data
-    readTodo();
-    //active toastOn function depending on toastkey
-    toastOn(toastkey);
-    //reset the toastkey in the session storage into "off"
-    sessionStorage.setItem("toastkey", "off");
-  } else {
-    document.addEventListener("DOMContentLoaded", toastOn);
-  }
-}
-
-/*******   Create   *******/
+/************************   Create  ************************/
 let addBtn = document.getElementById("add-button");
 let inputBox = document.getElementById("input-box");
 
@@ -79,17 +52,29 @@ async function addTodo() {
     window.location.reload();
   }
 }
+// Toast Message Pop-up function
+let toastMessage = document.getElementById("toast_message");
+function toastOn(toastkey) {
+  if (toastkey == "on") {
+    toastMessage.classList.add("active");
+    setTimeout(function () {
+      toastMessage.classList.remove("active");
+    }, 1000);
+  } else {
+  }
+}
 //'Add 버튼' 클릭시
 addBtn.addEventListener("click", addTodo);
 //'Enter-key' 클릭시
-inputBox.addEventListener("keypress", function () {
-  if (KeyboardEvent.keyCode == 13) {
-    KeyboardEvent.preventDefault();
+
+inputBox.addEventListener("keyup", function (event) {
+  if (event.key == "Enter") {
+    event.preventDefault();
     addTodo();
   }
 });
 
-/*******   Read   *******/
+/************************   Read  ************************/
 let listTodo = document.getElementById("list-todo");
 let listDone = document.getElementById("list-done");
 //시간순 정렬해서 query로 불러오기
@@ -101,67 +86,76 @@ function readTodo() {
     let done = doc.data()["done"];
     let time = doc.data()["time"];
 
-    //done이 "no"일 때 추가할 template
-    let temp_html_todo = `
-         <ul class="list-group" id="${doc.id}">
-             <li class="list-group-item">
-               <input class="form-check-input me-1" type="checkbox" id="${time}" />
-               <label for="${time}">${todo}</label>
-             </li>
-             <button class="edit-button">✄</button>
-             <button class="delete-button">✕</button>
-         </ul>`;
+    let template = document.getElementById("template-id");
+    let clone = document.importNode(template.content, true);
+    let input = clone.querySelector("li > input");
+    let label = clone.querySelector("li > label");
 
-    //done이 "yes"일 때 추가할 template
-    let temp_html_done = `
-         <ul class="list-group" id="${doc.id}">
-             <li class="list-group-item">
-               <input class="form-check-input me-1" type="checkbox" id="${time}" checked/>
-               <label for="${time}" class="done">${todo}</label>
-             </li>
-             <button class="edit-button">✄</button>
-             <button class="delete-button">✕</button>
-         </ul>`;
+    clone.id = doc.id;
+    input.id = time;
+    label.for = time;
+    label.textContent = todo;
 
     if (done == "no") {
-      listTodo.append(temp_html_todo);
+      listTodo.append(clone);
     } else if (done == "yes") {
-      listDone.append(temp_html_done);
+      input.checked = checked;
+      label.classList.add("done");
+      listDone.append(clone);
     } else {
     }
   });
 }
 
-/*******   Update   *******/
-let editBtn = document.getElementsByClassName("edit-button")[0];
-let confBtn = document.getElementsByClassName("confirm-button")[0];
-let cancBtn = document.getElementsByClassName("cancel-button")[0];
+/************************   Update  ************************/
+let button1 = document.getElementById("button1");
+let button2 = document.getElementById("button2");
+let chkBox = document.querySelector(".form-check-input");
 
 //'edit 버튼' 클릭시
 function editTodo(element) {
-  let item_to_edit = element.parent().children("li").children("label");
+  let item_to_edit = element.parentElement.querySelector("li > label");
   let before_edit = item_to_edit.text();
   item_to_edit.text("");
   item_to_edit.append(`<input type="text" value="${before_edit}"/>`);
   // edit-button -> confirm-button
   element.text("✓").removeClass("edit-button").addClass("confirm-button");
   // delete-button -> cancel-button
-  element
-    .parent()
-    .children(".delete-button")
+  element.parentElement
+    .querySelector(".delete-button")
     .text("↺")
     .removeClass("delete-button")
     .addClass("cancel-button");
 }
 
-editBtn?.addEventListener("click", editTodo(this));
+button1.addEventListener("click", (event) => {
+  if (button1.className == "edit-button") {
+    editTodo(event.target);
+  } else if (button1.className == "confirm-button") {
+    confirmEdit(event.target);
+  } else {
+  }
+});
+
+button2.addEventListener("click", (event) => {
+  if (button2.className == "delete-button") {
+    deleteTodo(event.target);
+  } else if (button2.className == "cancel-button") {
+    cancelEdit(event.target);
+  } else {
+  }
+});
+
+// editBtn?.addEventListener("click", (event) => {
+//   console.log(event);
+//   editTodo(event.target);
+// });
 
 //'confirm 버튼' 클릭시
 async function confirmEdit(element) {
   let docID = element.parentElement.id;
-  let findRef = doc(db, "todolist", docID);
-  let findDoc = await getDoc(findRef);
-  let before_edit = findDoc.data()["todo"];
+  let todoDoc = await getDoc(doc(db, "todolist", docID));
+  let before_edit = todoDoc.data()["todo"];
   let after_edit = element
     .parent()
     .children("li")
@@ -175,10 +169,11 @@ async function confirmEdit(element) {
     element.parent().children("li").children("label").text(before_edit);
   } else {
     // update todo-text
-    element.parent().children("li").children("label").text(after_edit);
+    // element.parent().children("li").children("label").text(after_edit);
     updateDoc(doc(db, "todolist", docID), {
       todo: after_edit,
     });
+    window.location.reload();
   }
   // confirm-button -> edit-button
   element.text("✄").removeClass("confirm-button").addClass("edit-button");
@@ -191,14 +186,15 @@ async function confirmEdit(element) {
     .removeClass("cancel-button")
     .addClass("delete-button");
 }
-if (confBtn) confBtn.addEventListener("click", confirmEdit(this));
+// if (confBtn) {
+//   confBtn.addEventListener("click", confirmEdit(this));
+// }
 
 //'cancel 버튼' 클릭시
 async function cancelEdit(element) {
   let docID = element.parentElement.id;
-  let findRef = doc(db, "todolist", docID);
-  let findDoc = await getDoc(findRef);
-  let before_edit = findDoc.data()["todo"];
+  let todoDoc = await getDoc(doc(db, "todolist", docID));
+  let before_edit = todoDoc.data()["todo"];
 
   // do nothing on todo-text
   element.parent().children("li").children("label").text(before_edit);
@@ -213,17 +209,17 @@ async function cancelEdit(element) {
   // cancel-button -> delete-button
   element.text("✕").removeClass("cancel-button").addClass("delete-button");
 }
-
-if (cancBtn) cancBtn.addEventListener("click", cancelEdit(this));
+// if (cancBtn) {
+//   cancBtn.addEventListener("click", cancelEdit(this));
+// }
 
 //'checkbox' 클릭시
-let chkBox = document.getElementsByClassName("form-check-input")[0];
-if (chkBox)
-  chkBox.addEventListener("click", function () {
-    let docID = this.parentElement.parentElement.id;
+if (chkBox) {
+  chkBox.addEventListener("click", function (event) {
+    let docID = event.target.parentElement.parentElement.id;
 
-    if (this.checked) {
-      this.parent().children("label").addClass("done");
+    if (event.target.checked) {
+      event.target.parent().children("label").addClass("done");
       updateDoc(doc(db, "todolist", docID), {
         done: "yes",
       });
@@ -235,16 +231,40 @@ if (chkBox)
     }
     window.location.reload();
   });
+}
 
-/*******   Delete   *******/
-let delBtn = document.getElementsByClassName("delete-button")[0];
+/************************   Delete  ************************/
+let delBtn = document.querySelector("#buttons > button.delete-button");
+function deleteTodo(event) {
+  console.log("hi");
 
-if (delBtn)
-  //'delete 버튼' 클릭시
-  delBtn.addEventListener("click", function () {
-    let docID = this.parentElement.id;
-    this.parent().remove();
-    deleteDoc(doc(db, "todolist", docID));
-  });
+  let docID = event.target.parentElement.parentElement.parentElement.id;
+  deleteDoc(doc(db, "todolist", docID));
+  window.location.reload();
+}
+//'delete 버튼' 클릭시
+if (delBtn) {
+  delBtn.addEventListener("click", deleteTodo);
+}
 
-readyDoc();
+/************************   Initiate  ************************/
+let toastkey = sessionStorage.getItem("toastkey");
+function initPage() {
+  //문서의 현재 상태가 로딩 중이 아니라면
+  if (document.readyState !== "loading") {
+    //바로 readTodo 함수를 사용해 저장된 데이터를 불러와 웹페이지에 표시합니다.
+    readTodo();
+    //active toastOn function depending on toastkey
+    toastOn(toastkey);
+    //reset the toastkey in the session storage into "off"
+    sessionStorage.setItem("toastkey", "off");
+  } else {
+    //로딩 중이라면 DOM 컨텐츠 로딩을 모두 완료한 후, 위의 3가지를 실행합니다.
+    document.addEventListener("DOMContentLoaded", function () {
+      readTodo();
+      toastOn(toastkey);
+      sessionStorage.setItem("toastkey", "off");
+    });
+  }
+}
+initPage();

@@ -10,25 +10,22 @@
   margin: 20px auto 0px auto;
 }
 .list-group {
-  margin: 10px auto 0px auto;
-  flex-direction: row;
-  align-items: center;
-}
-.list-group-item {
-  width: 80%;
-  margin: 0px auto 0px 0px;
+  margin: 5px auto 0px auto;
 }
 .btn-primary {
   width: 45px;
   font-size: large;
   font-weight: bold;
 }
+#buttons {
+  gap: 5px;
+  float: right;
+}
 .edit-button {
   border-radius: 5px;
   border-color: transparent;
   box-shadow: none;
   background-color: darkblue;
-  margin-right: 5px;
   color: white;
 }
 .delete-button {
@@ -41,7 +38,6 @@
 .confirm-button {
   border-radius: 5px;
   border-color: transparent;
-  margin-right: 5px;
   box-shadow: none;
   background-color: rgb(4, 229, 0);
   color: white;

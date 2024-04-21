@@ -2,11 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>To-Do List</title>
     <!-- CSS: style.css -->
-
     <link href="style.css" rel="stylesheet" />
     <!-- CSS: Bootstrap -->
     <link
@@ -15,6 +13,9 @@
       integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
       crossorigin="anonymous"
     />
+    <!-- JS: script.js -->
+    <script src="script.js" type="module"></script>
+    <!-- <script src="firebase.js" type="module"></script> -->
   </head>
   <body>
     <div class="main">
@@ -32,7 +33,18 @@
       <div class="list" id="list-done"></div>
     </div>
     <div id="toast_message">Successfully Added !</div>
-    <script src="script.js" type="module"></script>
-    <!-- JS: script.js -->
   </body>
+  <!-- template -->
+  <template id="template-id">
+    <ul class="list-group">
+      <li class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" />
+        <label></label>
+        <span id="buttons">
+          <button class="edit-button" id="button1">✄</button>
+          <button class="delete-button" id="button2">✕</button>
+        </span>
+      </li>
+    </ul>
+  </template>
 </html>
