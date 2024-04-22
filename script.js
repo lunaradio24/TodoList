@@ -250,25 +250,31 @@ function initPage() {
     });
   }
 }
-/************************   Initiate   ************************/
+/************************   After Documnet is Ready   ************************/
 initPage();
 let addBtn = document.getElementById("add-button");
 let inputBox = document.getElementById("input-box");
 let confBtn = document.querySelector(".confirm-button");
 let cancBtn = document.querySelector(".cancel-button");
-let keysPressed = {};
+let keyPressed = {};
 
-document.addEventListener("keydown", (event) => {
-  keysPressed[event.key] = true;
-});
 //'Add 버튼' 클릭시
 addBtn?.addEventListener("click", addTodo);
-//'Enter-key' 클릭시
-inputBox?.addEventListener("keypress", (event) => {
-  if (event.key == "Enter") {
+//키보드 자판 누를 시
+inputBox?.addEventListener("keydown", (event) => {
+  //keyPressed에 true로 저장
+  keyPressed[event.key] = true;
+  //command + Enter 키 누르면
+  if (keyPressed["Meta"] && event.key == "Enter") {
     event.preventDefault();
+    //할일 목록에 추가
     addTodo();
   }
+});
+//키보드 자판 뗄 시
+document.addEventListener("keyup", (event) => {
+  //keyPressed에서 삭제
+  delete keyPressed[event.key];
 });
 //'Confirm 버튼' 클릭시
 confBtn?.addEventListener("click", (event) => {

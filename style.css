@@ -66,14 +66,14 @@
   color: white;
 }
 .confirm-button {
-  border-radius: 5px;
+  border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
   background-color: rgb(4, 229, 0);
   color: white;
 }
 .cancel-button {
-  border-radius: 5px;
+  border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
   background-color: grey;
