@@ -15,7 +15,6 @@
     />
     <!-- JS: script.js -->
     <script src="script.js" type="module"></script>
-    <!-- <script src="firebase.js" type="module"></script> -->
   </head>
   <body>
     <div class="main">
@@ -32,8 +31,8 @@
         </div>
         <button class="btn btn-primary" type="button" id="add-button">+</button>
       </div>
-      <div class="list" id="list-todo"></div>
-      <div class="list" id="list-done"></div>
+      <div class="list" id="list-todo">todo</div>
+      <div class="list" id="list-done">done</div>
     </div>
     <div id="toast_message">Successfully Added !</div>
   </body>
@@ -43,9 +42,9 @@
       <li class="list-group-item">
         <input class="form-check-input me-1" type="checkbox" />
         <label></label>
-        <span id="buttons">
-          <button class="edit-button" id="button1">✎</button>
-          <button class="delete-button" id="button2">—</button>
+        <span class="two-buttons">
+          <button class="edit-button" id="left-button">✎</button>
+          <button class="delete-button" id="right-button">—</button>
         </span>
       </li>
     </ul>

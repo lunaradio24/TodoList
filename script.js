@@ -29,9 +29,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/************************   Create  ************************/
-let addBtn = document.getElementById("add-button");
-let inputBox = document.getElementById("input-box");
+/************************   Create   ************************/
 
 async function addTodo() {
   let input = inputBox.value;
@@ -63,18 +61,8 @@ function toastOn(toastkey) {
   } else {
   }
 }
-//'Add 버튼' 클릭시
-addBtn.addEventListener("click", addTodo);
-//'Enter-key' 클릭시
 
-inputBox.addEventListener("keyup", function (event) {
-  if (event.key == "Enter") {
-    event.preventDefault();
-    addTodo();
-  }
-});
-
-/************************   Read  ************************/
+/************************   Read   ************************/
 let listTodo = document.getElementById("list-todo");
 let listDone = document.getElementById("list-done");
 //시간순 정렬해서 query로 불러오기
@@ -84,171 +72,166 @@ function readTodo() {
   docs.forEach((doc) => {
     let todo = doc.data()["todo"];
     let done = doc.data()["done"];
-    let time = doc.data()["time"];
 
     let template = document.getElementById("template-id");
     let clone = document.importNode(template.content, true);
-    let input = clone.querySelector("ul > li > input");
+    let chkBox = clone.querySelector("ul > li > input");
     let label = clone.querySelector("ul > li > label");
-
-    clone.id = doc.id;
-    input.id = time;
-    label.for = time;
+    let buttons = clone.querySelector("ul > li > .two-buttons");
+    let leftBtn = clone.querySelector("ul > li > .two-buttons > #left-button");
+    let rightBtn = clone.querySelector(
+      "ul > li > .two-buttons > #right-button"
+    );
+    chkBox.id = doc.id;
+    label.htmlFor = doc.id;
     label.textContent = todo;
+    buttons.id = doc.id;
 
+    //DB의 done 필드가 "no" 일 때
     if (done == "no") {
       listTodo.append(clone);
-    } else if (done == "yes") {
-      input.checked = checked;
-      label.classList.add("done");
+    }
+    //DB의 done 필드가 "yes" 일 때
+    else if (done == "yes") {
+      chkBox.checked = true;
+      chkBox.parentElement.querySelector("label").classList.add("checked");
       listDone.append(clone);
     } else {
     }
+
+    //leftBtn onclick event 추가
+    leftBtn?.addEventListener("click", (event) => {
+      if (event.target.classList[0] == "edit-button") {
+        editTodo(event.target);
+      } else if (event.target.classList[0] == "confirm-button") {
+        confirmEdit(event.target);
+      } else {
+      }
+    });
+    //rightBtn onclick event 추가
+    rightBtn?.addEventListener("click", (event) => {
+      if (event.target.classList[0] == "delete-button") {
+        deleteTodo(event.target);
+      } else if (event.target.classList[0] == "cancel-button") {
+        cancelEdit(event.target);
+      } else {
+      }
+    });
+    //chcBox onclick event 추가
+    chkBox?.addEventListener("click", (event) => {
+      checkTodo(event.target);
+    });
   });
 }
 
-/************************   Update  ************************/
-let button1 = document.getElementById("button1");
-let button2 = document.getElementById("button2");
-let chkBox = document.querySelector(".form-check-input");
+/************************   Update   ************************/
 
 //'edit 버튼' 클릭시
 function editTodo(element) {
-  let item_to_edit = element.parentElement.querySelector("li > label");
-  let before_edit = item_to_edit.text();
-  item_to_edit.text("");
-  item_to_edit.append(`<input type="text" value="${before_edit}"/>`);
-  // edit-button -> confirm-button
-  element.text("✓").removeClass("edit-button").addClass("confirm-button");
-  // delete-button -> cancel-button
+  let item_to_edit = element.parentElement.parentElement.querySelector("label");
+  //label 텍스트를 before_edit에 저장하고
+  let before_edit = item_to_edit.textContent;
+  //label 텍스트를 비움
+  item_to_edit.textContent = "";
+  //label 안에 입력창 만들고
+  let new_input = document.createElement("input");
+  item_to_edit.appendChild(new_input);
+  //입력창의 디폴트값으로 before_edit을 삽입
+  item_to_edit.querySelector("input").value = before_edit;
+
+  //'edit-button'을 'confirm-button'으로 변경
+  element.textContent = "✓";
+  element.classList.remove("edit-button");
+  element.classList.add("confirm-button");
+  //'delete-button'을 'cancel-button'으로 변경
+  element.parentElement.querySelector("#right-button").textContent = "↺";
   element.parentElement
-    .querySelector(".delete-button")
-    .text("↺")
-    .removeClass("delete-button")
-    .addClass("cancel-button");
+    .querySelector("#right-button")
+    .classList.remove("delete-button");
+  element.parentElement
+    .querySelector("#right-button")
+    .classList.add("cancel-button");
 }
-
-button1?.addEventListener("click", (event) => {
-  if (button1.className == "edit-button") {
-    editTodo(event.target);
-  } else if (button1.className == "confirm-button") {
-    confirmEdit(event.target);
-  } else {
-  }
-});
-
-button2?.addEventListener("click", (event) => {
-  if (button2.className == "delete-button") {
-    deleteTodo(event.target);
-  } else if (button2.className == "cancel-button") {
-    cancelEdit(event.target);
-  } else {
-  }
-});
-
-// editBtn?.addEventListener("click", (event) => {
-//   console.log(event);
-//   editTodo(event.target);
-// });
 
 //'confirm 버튼' 클릭시
 async function confirmEdit(element) {
-  let docID = element.parentElement.id;
+  let buttons = element.parentElement;
+  let docID = buttons.id;
   let todoDoc = await getDoc(doc(db, "todolist", docID));
   let before_edit = todoDoc.data()["todo"];
-  let after_edit = element
-    .parent()
-    .children("li")
-    .children("label")
-    .children("input")
-    .val();
+  let after_edit = buttons.parentElement.querySelector("label > input").value;
+  buttons.parentElement.querySelector("label > input").remove();
 
-  // check if the input is blank
+  //check if the input is blank
   if (after_edit == "") {
     // do nothing on todo-text
-    element.parent().children("li").children("label").text(before_edit);
+    buttons.parentElement.querySelector("label").textContent = before_edit;
   } else {
-    // update todo-text
-    // element.parent().children("li").children("label").text(after_edit);
-    updateDoc(doc(db, "todolist", docID), {
+    //update todo-text in label
+    buttons.parentElement.querySelector("label").textContent = after_edit;
+    //update todo-text in DB
+    await updateDoc(doc(db, "todolist", docID), {
       todo: after_edit,
     });
-    window.location.reload();
   }
-  // confirm-button -> edit-button
-  element.text("✄").removeClass("confirm-button").addClass("edit-button");
-
-  // cancel-button -> delete-button
-  element
-    .parent()
-    .children(".cancel-button")
-    .text("✕")
-    .removeClass("cancel-button")
-    .addClass("delete-button");
+  //'confirm-button'을 'edit-button'으로 변경
+  element.textContent = "✎";
+  element.classList.remove("confirm-button");
+  element.classList.add("edit-button");
+  //'cancel-button'을 'delete-button'으로 변경
+  buttons.querySelector("#right-button").textContent = "—";
+  buttons.querySelector("#right-button").classList.remove("cancel-button");
+  buttons.querySelector("#right-button").classList.add("delete-button");
+  console.log(buttons.querySelector("#right-button").classList);
 }
-// if (confBtn) {
-//   confBtn.addEventListener("click", confirmEdit(this));
-// }
 
 //'cancel 버튼' 클릭시
 async function cancelEdit(element) {
-  let docID = element.parentElement.id;
+  let buttons = element.parentElement;
+  let docID = buttons.id;
   let todoDoc = await getDoc(doc(db, "todolist", docID));
   let before_edit = todoDoc.data()["todo"];
 
   // do nothing on todo-text
-  element.parent().children("li").children("label").text(before_edit);
-  // confirm-button -> edit-button
-  element
-    .parent()
-    .children(".confirm-button")
-    .text("✄")
-    .removeClass("confirm-button")
-    .addClass("edit-button");
+  buttons.parentElement.querySelector("label").textContent = before_edit;
+  //'confirm-button'을 'edit-button'으로 변경
+  buttons.querySelector("#left-button").textContent = "✎";
+  buttons.querySelector("#left-button").classList.remove("confirm-button");
+  buttons.querySelector("#left-button").classList.add("edit-button");
 
-  // cancel-button -> delete-button
-  element.text("✕").removeClass("cancel-button").addClass("delete-button");
+  //'cancel-button'을 'delete-button'으로 변경
+  element.textContent = "—";
+  element.classList.remove("cancel-button");
+  element.classList.add("delete-button");
 }
-// if (cancBtn) {
-//   cancBtn.addEventListener("click", cancelEdit(this));
-// }
 
 //'checkbox' 클릭시
-if (chkBox) {
-  chkBox.addEventListener("click", function (event) {
-    let docID = event.target.parentElement.parentElement.id;
-
-    if (event.target.checked) {
-      event.target.parent().children("label").addClass("done");
-      updateDoc(doc(db, "todolist", docID), {
-        done: "yes",
-      });
-    } else {
-      this.parent().children("label").removeClass("done");
-      updateDoc(doc(db, "todolist", docID), {
-        done: "no",
-      });
-    }
-    window.location.reload();
-  });
-}
-
-/************************   Delete  ************************/
-let delBtn = document.querySelector("#buttons > button.delete-button");
-function deleteTodo(event) {
-  console.log("hi");
-
-  let docID = event.target.parentElement.parentElement.parentElement.id;
-  deleteDoc(doc(db, "todolist", docID));
+async function checkTodo(element) {
+  let docID = element.id;
+  if (element.checked) {
+    element.parentElement.querySelector("label").classList.add("checked");
+    await updateDoc(doc(db, "todolist", docID), {
+      done: "yes",
+    });
+  } else {
+    element.parentElement.querySelector("label").classList.remove("checked");
+    await updateDoc(doc(db, "todolist", docID), {
+      done: "no",
+    });
+  }
   window.location.reload();
 }
-//'delete 버튼' 클릭시
-if (delBtn) {
-  delBtn.addEventListener("click", deleteTodo);
+/************************   Delete   ************************/
+
+async function deleteTodo(element) {
+  let docID = element.parentElement.id;
+  await deleteDoc(doc(db, "todolist", docID));
+  window.location.reload();
 }
 
-/************************   Initiate  ************************/
+/************************   Initiate   ************************/
 let toastkey = sessionStorage.getItem("toastkey");
+
 function initPage() {
   //문서의 현재 상태가 로딩 중이 아니라면
   if (document.readyState !== "loading") {
@@ -267,4 +250,33 @@ function initPage() {
     });
   }
 }
+/************************   Initiate   ************************/
 initPage();
+let addBtn = document.getElementById("add-button");
+let inputBox = document.getElementById("input-box");
+let confBtn = document.querySelector(".confirm-button");
+let cancBtn = document.querySelector(".cancel-button");
+let keysPressed = {};
+
+document.addEventListener("keydown", (event) => {
+  keysPressed[event.key] = true;
+});
+//'Add 버튼' 클릭시
+addBtn?.addEventListener("click", addTodo);
+//'Enter-key' 클릭시
+inputBox?.addEventListener("keypress", (event) => {
+  if (event.key == "Enter") {
+    event.preventDefault();
+    addTodo();
+  }
+});
+//'Confirm 버튼' 클릭시
+confBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  confirmEdit(event.target);
+});
+//'Cancel 버튼' 클릭시
+cancBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  cancelEdit(event.target);
+});
