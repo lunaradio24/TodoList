@@ -1,14 +1,16 @@
-.main {
+main {
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
   align-items: center;
 }
-.title {
-  text-align: center;
+header {
   margin-top: 40px;
   margin-bottom: 40px;
 }
+header > .title {
+  text-align: center;
+}
+/************************   input-container   ************************/
 .input-container {
   width: 40%;
   display: flex;
@@ -30,6 +32,7 @@
 .input-container > button {
   border-radius: 50%;
 }
+/************************   todo/done-list   ************************/
 #list-todo {
   width: 40%;
   display: flex;
@@ -47,6 +50,9 @@
 #list-todo > .list-group {
   border-radius: 20px;
 }
+#list-done > .list-group {
+  border-radius: 20px;
+}
 .two-buttons {
   gap: 5px;
   float: right;
@@ -55,7 +61,7 @@
   border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
-  background-color: darkblue;
+  background-color: rgb(0, 140, 255);
   color: white;
 }
 .delete-button {
@@ -69,14 +75,14 @@
   border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
-  background-color: rgb(4, 229, 0);
+  background-color: rgb(4, 243, 0);
   color: white;
 }
 .cancel-button {
   border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
-  background-color: grey;
+  background-color: rgb(177, 175, 175);
   color: white;
 }
 .checked {
@@ -84,7 +90,7 @@
   font-style: italic;
   color: grey;
 }
-/* toast message - default */
+/************************   toast message   ************************/
 #toast_message {
   opacity: 0;
   position: fixed;
@@ -98,7 +104,6 @@
   box-shadow: 3px 4px 11px 0px #00000040;
   transition: all 0.5s;
 }
-/* If toast message is active */
 #toast_message.active {
   opacity: 100%;
   bottom: 50px;

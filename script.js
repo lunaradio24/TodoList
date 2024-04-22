@@ -50,7 +50,7 @@ async function addTodo() {
     window.location.reload();
   }
 }
-// Toast Message Pop-up function
+/************************   Toast Message   ************************/
 let toastMessage = document.getElementById("toast_message");
 function toastOn(toastkey) {
   if (toastkey == "on") {
@@ -125,7 +125,6 @@ function readTodo() {
 }
 
 /************************   Update   ************************/
-
 //'edit 버튼' 클릭시
 function editTodo(element) {
   let item_to_edit = element.parentElement.parentElement.querySelector("label");
@@ -222,7 +221,7 @@ async function checkTodo(element) {
   window.location.reload();
 }
 /************************   Delete   ************************/
-
+//'delete 버튼' 클릭시
 async function deleteTodo(element) {
   let docID = element.parentElement.id;
   await deleteDoc(doc(db, "todolist", docID));

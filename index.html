@@ -17,8 +17,13 @@
     <script src="script.js" type="module"></script>
   </head>
   <body>
-    <div class="main">
+    <!-- header section -->
+    <header>
       <h1 class="title">TO-DO LIST</h1>
+    </header>
+    <!-- main section -->
+    <main>
+      <!-- input container -->
       <div class="input-container">
         <div class="form-floating">
           <textarea
@@ -29,11 +34,14 @@
           ></textarea>
           <label for="input-box">write here what to do</label>
         </div>
-        <button class="btn btn-primary" type="button" id="add-button">+</button>
+        <button class="btn btn-dark" type="button" id="add-button">+</button>
       </div>
+      <!-- todo-list -->
       <div class="list" id="list-todo">todo</div>
+      <!-- done-list -->
       <div class="list" id="list-done">done</div>
-    </div>
+    </main>
+    <!-- toast message -->
     <div id="toast_message">Successfully Added !</div>
   </body>
   <!-- template -->
