@@ -1,38 +1,65 @@
 .main {
-  width: 40%;
-  margin: 50px auto 50px auto;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
 }
 .title {
   text-align: center;
-  margin: 0px auto 0px auto;
+  margin-top: 40px;
+  margin-bottom: 40px;
 }
-.input-group {
-  margin: 20px auto 0px auto;
-}
-.list-group {
-  margin: 10px auto 0px auto;
+.input-container {
+  width: 40%;
+  display: flex;
   flex-direction: row;
+  justify-content: center;
   align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-.list-group-item {
-  width: 80%;
-  margin: 0px auto 0px 0px;
+.input-container > div {
+  width: 90%;
 }
-.btn-primary {
-  width: 45px;
-  font-size: large;
-  font-weight: bold;
+.input-container > div > textarea {
+  border-radius: 20px;
+}
+.input-container > div > label {
+  color: rgb(179, 178, 178);
+}
+.input-container > button {
+  border-radius: 50%;
+}
+#list-todo {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+#list-done {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+#list-todo > .list-group {
+  border-radius: 20px;
+}
+.two-buttons {
+  gap: 5px;
+  float: right;
 }
 .edit-button {
-  border-radius: 5px;
+  border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
   background-color: darkblue;
-  margin-right: 5px;
   color: white;
 }
 .delete-button {
-  border-radius: 5px;
+  border-radius: 50%;
   border-color: transparent;
   box-shadow: none;
   background-color: red;
@@ -41,7 +68,6 @@
 .confirm-button {
   border-radius: 5px;
   border-color: transparent;
-  margin-right: 5px;
   box-shadow: none;
   background-color: rgb(4, 229, 0);
   color: white;
@@ -53,7 +79,7 @@
   background-color: grey;
   color: white;
 }
-.done {
+.checked {
   text-decoration: line-through;
   font-style: italic;
   color: grey;
